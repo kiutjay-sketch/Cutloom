@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cutloom 3D — drop a photo, get a 3D blockout</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+<style>
+:root{--bg:#0e0b1f;--bg2:#1d1442;--panel:rgba(24,18,52,.66);--text:#f6f3ff;--muted:#a79fcb;--line:rgba(255,255,255,.14);--chip:rgba(255,255,255,.07);--a1:#f472b6;--a2:#22d3ee}
+@media(prefers-color-scheme:light){:root{--bg:#f4f0ff;--bg2:#dccffc;--panel:rgba(255,255,255,.75);--text:#1d1240;--muted:#645b8c;--line:rgba(29,18,64,.16);--chip:rgba(29,18,64,.06)}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(55% 50% at 68% 45%,var(--bg2),transparent 70%),radial-gradient(40% 40% at 10% 95%,rgba(236,72,153,.2),transparent 70%),radial-gradient(35% 40% at 95% 5%,rgba(34,211,238,.18),transparent 70%),var(--bg);color:var(--text);font:400 15px/1.5 'Instrument Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{display:grid;grid-template-columns:minmax(340px,430px) 1fr;height:100vh}
+aside{padding:26px 26px 22px;display:flex;flex-direction:column;gap:16px;overflow:auto}
+.brand{font:800 22px 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em;display:flex;gap:10px;align-items:center}
+.brand i{width:20px;height:20px;border-radius:6px 13px 6px 13px;background:linear-gradient(135deg,var(--a1),var(--a2));transform:rotate(12deg)}
+h1{margin:6px 0 0;font:800 clamp(38px,4.4vw,62px)/.96 'Bricolage Grotesque',sans-serif;letter-spacing:-.045em}
+h1 span{display:block;background:linear-gradient(100deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
+p.sub{margin:0;color:var(--muted);max-width:26em}
+.drop{border:1.5px dashed var(--line);border-radius:22px;background:var(--panel);backdrop-filter:blur(18px);min-height:170px;display:grid;place-items:center;text-align:center;padding:16px;cursor:pointer;transition:border-color .15s,transform .15s;position:relative;overflow:hidden}
+.drop:hover,.drop.over{border-color:var(--a1);transform:translateY(-1px)}
+.drop img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:var(--chip);display:none}
+.drop.has img{display:block}.drop.has .hint{display:none}
+.hint b{display:block;font:800 18px 'Bricolage Grotesque',sans-serif}.hint span{color:var(--muted);font-size:13px}
+label.opt{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--muted);font-size:14px}
+select,.sw{background:var(--chip);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:9px 12px;font:500 14px 'Instrument Sans',sans-serif}
+button{font:600 15px 'Instrument Sans',sans-serif;cursor:pointer}
+button:focus-visible,select:focus-visible{outline:2px solid var(--a2);outline-offset:2px}
+.go{border:0;border-radius:16px;padding:16px;color:#180b2e;background:linear-gradient(120deg,var(--a1),var(--a2));transition:filter .15s,transform .15s}
+.go:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}.go:disabled{opacity:.45;cursor:not-allowed}
+.msg{min-height:22px;color:var(--muted);font-size:13.5px}.msg.err{color:#fb7185}
+.hist{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.hist button{flex:none;width:58px;height:58px;border-radius:14px;border:1px solid var(--line);background:var(--chip) center/cover;padding:0}
+.hist button:hover{border-color:var(--a1)}
+.tag{font-size:12.5px;color:var(--muted);margin-top:auto}
+.tag b{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:6px}.tag.ok b{background:#34d399}
+main{position:relative;padding:18px 18px 18px 0}
+model-viewer{width:100%;height:100%;border-radius:30px;border:1px solid var(--line);background:transparent;--poster-color:transparent}
+.tools{position:absolute;right:34px;bottom:34px;display:flex;gap:8px}
+.tools a,.tools button{border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(14px);color:var(--text);text-decoration:none;border-radius:999px;padding:10px 16px;font-size:14px;font-weight:600}
+.busy{position:absolute;inset:18px 18px 18px 0;border-radius:30px;display:none;place-items:center;background:rgba(14,11,31,.55);backdrop-filter:blur(6px)}
+.busy.on{display:grid}.busy div{text-align:center;font:800 26px 'Bricolage Grotesque',sans-serif}.busy small{display:block;font:400 14px 'Instrument Sans';color:var(--muted);margin-top:6px}
+.ring{width:46px;height:46px;border-radius:50%;border:3px solid var(--a2);border-top-color:transparent;margin:0 auto 14px;animation:s .8s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
+@media(max-width:860px){.wrap{display:flex;flex-direction:column;height:auto}main{order:-1;height:52vh;padding:14px}.busy{inset:14px}aside{overflow:visible}.tools{right:26px;bottom:26px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head>
+<body><div class="wrap">
+<aside>
+  <div class="brand"><i></i>Cutloom 3D</div>
+  <div><h1>One click.<span>Instant 3D blockout.</span></h1></div>
+  <p class="sub">Drop a photo of any object. Get a clean, chunky 3D blockout in seconds, built on your own machine and ready to download.</p>
+  <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose or drop an image">
+    <img id="prev" alt="Your image">
+    <div class="hint"><b>Drop an image. That is it.</b><span>It builds the moment you drop. Objects on plain backgrounds work best.</span></div>
+    <input type="file" id="file" accept="image/*" hidden>
+  </div>
+  <label class="opt">Style <select id="mode"><option value="blockout" selected>Blockout (chunky, grey)</option><option value="textured">Textured</option></select></label>
+  <label class="opt">Quality
+    <select id="res"><option value="160">Fast</option><option value="256" selected>Balanced</option><option value="352">Fine detail</option></select></label>
+  <label class="opt">Remove background <input type="checkbox" id="rembg" checked></label>
+  <button class="go" id="go" disabled>Regenerate</button>
+  <div class="msg" id="msg"></div>
+  <div class="hist" id="hist" aria-label="Your recent models"></div>
+  <div class="tag" id="tag"><b></b><span>Checking your hardware</span></div>
+</aside>
+<main>
+  <model-viewer id="mv" src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" camera-controls auto-rotate shadow-intensity="1.2" exposure="1.05" interaction-prompt="none" alt="3D model preview"></model-viewer>
+  <div class="tools"><button id="reset">Reset view</button><a id="dl" href="#" download="blockout.glb" hidden>Download .glb</a></div>
+  <div class="busy" id="busy"><div><div class="ring"></div><span id="step">Shaping your model</span><small>The first run downloads the model weights (about 1.7 GB).</small></div></div>
+</main></div>
+<script>
+const $=s=>document.querySelector(s);let file=null,timer;
+const steps=['Cleaning up the background','Reading the shape','Blocking out the volume','Flattening the faces'];
+function pick(f){if(!f||!f.type.startsWith('image/'))return;file=f;$('#prev').src=URL.createObjectURL(f);$('#drop').classList.add('has');$('#msg').textContent='';run()}
+$('#drop').onclick=()=>$('#file').click();
+$('#drop').onkeydown=e=>{if(e.key==='Enter'||e.key===' ')$('#file').click()};
+$('#file').onchange=e=>pick(e.target.files[0]);
+['dragover','dragenter'].forEach(t=>$('#drop').addEventListener(t,e=>{e.preventDefault();$('#drop').classList.add('over')}));
+['dragleave','drop'].forEach(t=>$('#drop').addEventListener(t,e=>{e.preventDefault();$('#drop').classList.remove('over')}));
+$('#drop').addEventListener('drop',e=>pick(e.dataTransfer.files[0]));
+$('#reset').onclick=()=>{const m=$('#mv');m.cameraOrbit='auto auto auto';m.fieldOfView='auto';m.jumpCameraToGoal()};
+function show(url){$('#mv').src=url;$('#dl').href=url;$('#dl').hidden=false}
+function thumb(){const c=document.createElement('canvas'),i=$('#prev');c.width=c.height=96;const x=c.getContext('2d'),s=Math.min(i.naturalWidth,i.naturalHeight);x.drawImage(i,(i.naturalWidth-s)/2,(i.naturalHeight-s)/2,s,s,0,0,96,96);return c.toDataURL('image/jpeg',.7)}
+function hist(){let h=[];try{h=JSON.parse(localStorage.getItem('forma')||'[]')}catch(e){}return h}
+function paint(){const box=$('#hist');box.innerHTML='';hist().forEach(o=>{const b=document.createElement('button');b.style.backgroundImage='url('+o.t+')';b.title='Open this model';b.onclick=()=>show(o.u);box.appendChild(b)})}
+async function run(){
+  const fd=new FormData();fd.append('image',file);fd.append('resolution',$('#res').value);fd.append('remove_bg',$('#rembg').checked);fd.append('mode',$('#mode').value);
+  $('#busy').classList.add('on');$('#go').disabled=true;$('#msg').textContent='';let i=0;$('#step').textContent=steps[0];
+  timer=setInterval(()=>{i=(i+1)%steps.length;$('#step').textContent=steps[i]},2600);
+  try{const r=await fetch('/api/generate',{method:'POST',body:fd});const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d.detail||'Something went wrong. Check the Pinokio terminal for details.');
+    show(d.url);$('#msg').textContent='Done in '+d.seconds+' seconds. Drag to turn it.';
+    const h=hist();h.unshift({u:d.url,t:thumb()});try{localStorage.setItem('forma',JSON.stringify(h.slice(0,12)))}catch(e){}paint();
+  }catch(e){$('#msg').textContent=e.message;$('#msg').classList.add('err')}
+  finally{clearInterval(timer);$('#busy').classList.remove('on');$('#go').disabled=false}}
+$('#go').onclick=run;$('#mode').onchange=$('#res').onchange=()=>{if(file)run()};
+fetch('/api/status').then(r=>r.json()).then(s=>{const t=$('#tag');t.classList.toggle('ok',s.gpu);t.querySelector('span').textContent=s.gpu?'GPU ready. Models take seconds.':'Running on CPU. Models can take a few minutes.'});
+paint();
+</script></body></html>
