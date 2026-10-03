@@ -27,7 +27,7 @@ Videos are rendered on your computer. Your scripts, keys and footage do not pass
 | Background music, batch mode, your own clips | No | Yes |
 | Export | MP4 | MP4 plus zip with voiceover, script and subtitles |
 
-**Cutloom Ultimate** is an optional add-on for Pro users: AI-generated 5-second clips for a scene, sold as credit packs (10, 30 or 100 clips). It needs Pro.
+**Cutloom Ultimate** COMING SOON......
 
 Pricing and purchase links: https://cutloom.netlify.app/#pricing
 
