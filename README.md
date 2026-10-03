@@ -27,7 +27,7 @@ Videos are rendered on your computer. Your scripts, keys and footage do not pass
 | Background music, batch mode, your own clips | No | Yes |
 | Export | MP4 | MP4 plus zip with voiceover, script and subtitles |
 
-**Cutloom Ultimate** COMING SOON......
+**Cutloom Ultimate**  COMING SOON......
 
 Pricing and purchase links: https://cutloom.netlify.app/#pricing
 
