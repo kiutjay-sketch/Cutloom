@@ -1,7 +1,7 @@
 module.exports = {
   version: "2.0",
   title: "Cutloom",
-  description: "One-click shorts: niche ideas, script, voiceover, footage, captions and a finished 9:16 video. Optional photo-to-3D module.",
+  description: "One-click shorts: niche ideas, script, voiceover, footage, captions and a finished video in 9:16, 16:9, 1:1 or a custom size. Optional photo-to-3D module.",
   icon: "icon.png",
   menu: async (kernel, info) => {
     const installed = info.exists("server/env")

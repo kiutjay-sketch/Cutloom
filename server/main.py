@@ -15,11 +15,32 @@ D3 = os.path.join(HERE, "3d")
 PY3 = os.path.join(D3, "env", "Scripts", "python.exe") if os.name == "nt" else os.path.join(D3, "env", "bin", "python")
 app = FastAPI(title="Cutloom")
 
+VERSION = "2.3"
+THREE_D_PORT = 7861
+
 def has3d(): return os.path.exists(PY3) and os.path.exists(os.path.join(D3, "TripoSR"))
 
-def start3d():
+def free_port(preferred, avoid=()):
+    """Use the preferred port if nothing else is using it; otherwise ask the system for any free port.
+    (Before v2.3 a second program on the same port stopped Cutloom with a confusing error.)"""
+    for p in (preferred, 0, 0, 0):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            s.bind(("127.0.0.1", p))
+            got = s.getsockname()[1]
+            if got not in avoid: return got
+        except OSError:
+            pass
+        finally:
+            s.close()
+    return preferred
+
+def start3d(avoid=()):
+    global THREE_D_PORT
     if has3d():  # the optional 3D module runs as its own small server; its output goes to a log so the Studio address stays first
-        p = subprocess.Popen([PY3, "main3d.py"], cwd=D3, stdout=open(os.path.join(DATA, "3d.log"), "w"), stderr=subprocess.STDOUT)
+        THREE_D_PORT = free_port(7861, avoid)
+        env = dict(os.environ, CUTLOOM_3D_PORT=str(THREE_D_PORT))
+        p = subprocess.Popen([PY3, "main3d.py"], cwd=D3, env=env, stdout=open(os.path.join(DATA, "3d.log"), "w"), stderr=subprocess.STDOUT)
         atexit.register(p.terminate)
 
 def keys():
@@ -60,7 +81,7 @@ class LicReq(BaseModel):
 
 @app.get("/api/license")
 def lic_status():
-    return {"pro": is_pro(), "test": not CFG.get("product_id"), "buy_url": CFG.get("buy_url", "")}
+    return {"pro": is_pro(), "test": not CFG.get("product_id"), "buy_url": CFG.get("buy_url", ""), "version": VERSION}
 
 @app.post("/api/license")
 def lic_activate(r: LicReq):
@@ -231,11 +252,11 @@ def ult_key():
     except Exception: return ""
 
 def ult_ready():
-    return bool(ULT.get("api_base") and ULT.get("product_id"))
+    return bool(ULT.get("enabled", True) and ULT.get("api_base") and ULT.get("product_id"))
 
 @app.get("/api/ultimate")
 def ultimate_status():
-    if not ult_ready(): return {"available": False}
+    if not ult_ready(): return {"available": False, "coming_soon": not ULT.get("enabled", True)}
     key = ult_key()
     credits = None
     if key:
@@ -581,9 +602,9 @@ def split(r: SplitReq):
 def three_d():
     up = False
     if has3d():
-        try: requests.get("http://127.0.0.1:7861/api/status", timeout=1); up = True
+        try: requests.get(f"http://127.0.0.1:{THREE_D_PORT}/api/status", timeout=1); up = True
         except Exception: pass
-    return {"installed": has3d(), "running": up, "url": "http://127.0.0.1:7861"}
+    return {"installed": has3d(), "running": up, "url": f"http://127.0.0.1:{THREE_D_PORT}"}
 
 app.mount("/outputs", StaticFiles(directory=OUT), name="outputs")
 
@@ -592,5 +613,8 @@ def index():
     return FileResponse(os.path.join(HERE, "static", "index.html"))
 
 if __name__ == "__main__":
-    start3d()
-    uvicorn.run(app, host="127.0.0.1", port=int(os.environ.get("PORT", 7862)))
+    wanted = int(os.environ.get("PORT", 7862))
+    PORT = free_port(wanted)
+    if PORT != wanted: print(f"Port {wanted} is busy, so Cutloom is using port {PORT} instead.", flush=True)
+    start3d(avoid=(PORT,))
+    uvicorn.run(app, host="127.0.0.1", port=PORT)

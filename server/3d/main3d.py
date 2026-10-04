@@ -68,4 +68,4 @@ def index():
     return FileResponse(os.path.join(HERE, "static", "index.html"))
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=7861)
+    uvicorn.run(app, host="127.0.0.1", port=int(os.environ.get("CUTLOOM_3D_PORT", 7861)))

@@ -27,7 +27,7 @@ Videos are rendered on your computer. Your scripts, keys and footage do not pass
 | Background music, batch mode, your own clips | No | Yes |
 | Export | MP4 | MP4 plus zip with voiceover, script and subtitles |
 
-**Cutloom Ultimate**  COMING SOON......
+**Cutloom Ultimate** (AI-generated clips for a scene, sold as credit packs) is **coming soon** and is not for sale yet. It will need Pro.
 
 Pricing and purchase links: https://cutloom.netlify.app/#pricing
 
@@ -37,7 +37,7 @@ Pricing and purchase links: https://cutloom.netlify.app/#pricing
 - No graphics card is needed for the Studio.
 - **Optional:** an OpenAI key, for natural AI voices and AI-written scripts. This usually costs a few cents per short and is billed to you by OpenAI. Without it you can paste your own script and use a free built-in voice.
 - **Recommended:** a free Pexels key, for real stock footage. Without it you get plain colored backgrounds.
-- **Optional photo-to-3D module:** needs an NVIDIA graphics card.
+- **Optional photo-to-3D module:** runs best with an NVIDIA graphics card, and may be very slow on other PCs.
 
 ## Install
 
