@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cutloom — one-click shorts and 3D</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e0b1f;--bg2:#1d1442;--panel:rgba(24,18,52,.7);--text:#f6f3ff;--muted:#a79fcb;--line:rgba(255,255,255,.14);--chip:rgba(255,255,255,.07);--a1:#ff2e93;--a2:#00eaff;--ink:#180b2e}
+@media(prefers-color-scheme:light){:root{--bg:#f4f0ff;--bg2:#dccffc;--panel:rgba(255,255,255,.8);--text:#1d1240;--muted:#645b8c;--line:rgba(29,18,64,.16);--chip:rgba(29,18,64,.06)}}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:radial-gradient(60% 45% at 75% 0,var(--bg2),transparent 70%),radial-gradient(40% 40% at 0 100%,rgba(236,72,153,.18),transparent 70%),var(--bg);color:var(--text);font:400 15px/1.5 'Instrument Sans',system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:22px;display:grid;grid-template-columns:1fr 330px;gap:22px}
+header{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center}
+.brand{font:800 32px 'Bricolage Grotesque',sans-serif;letter-spacing:-.01em;display:flex;gap:10px;align-items:center}
+.brand i{width:22px;height:22px;border-radius:7px 14px 7px 14px;background:linear-gradient(135deg,var(--a1),var(--a2));transform:rotate(12deg)}
+.hero{grid-column:1/-1;margin:4px 0 0}
+h1{margin:0;font:800 clamp(46px,7.5vw,92px)/.95 'Bricolage Grotesque',sans-serif;letter-spacing:-.045em}
+h1 span{background:linear-gradient(100deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.card{border:1px solid var(--line);border-radius:22px;background:var(--panel);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:18px;margin-bottom:16px}
+.card h2{margin:0 0 12px;font:800 18px 'Bricolage Grotesque',sans-serif;display:flex;gap:10px;align-items:center}
+.card h2 b{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px;color:#180b2e;background:linear-gradient(120deg,var(--a1),var(--a2))}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 5px}
+input,textarea,select{width:100%;background:var(--chip);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:10px 12px;font:inherit}
+select{appearance:none;-webkit-appearance:none;padding-right:34px;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) center,calc(100% - 13px) center;background-size:5px 5px,5px 5px;background-repeat:no-repeat;color-scheme:dark light;cursor:pointer}
+select:hover{border-color:var(--a1)}
+select option,select optgroup{background:#170f33;color:#f6f3ff}
+@media(prefers-color-scheme:light){select option,select optgroup{background:#ffffff;color:#1d1240}}
+:root[data-theme=light] select option,:root[data-theme=light] select optgroup{background:#ffffff;color:#1d1240}
+textarea{resize:vertical}
+button{font:600 14px 'Instrument Sans',sans-serif;color:var(--text);cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--a2);outline-offset:2px}
+.go{border:0;border-radius:14px;padding:12px 20px;margin-top:14px;color:#180b2e;background:linear-gradient(120deg,var(--a1),var(--a2))}
+.go:disabled{opacity:.5;cursor:wait}
+.ghost{border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:8px 14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:500;color:var(--muted);text-align:left}
+.chip:hover{color:var(--text);border-color:var(--a1)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.seg{display:flex;gap:8px}.seg button{flex:1;border:1px solid var(--line);background:var(--chip);border-radius:12px;padding:10px}
+.seg button[aria-pressed=true]{border-color:var(--a1);background:linear-gradient(160deg,rgba(244,114,182,.22),rgba(34,211,238,.14))}
+.sc{display:grid;gap:6px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px dashed var(--line)}
+.msg{min-height:22px;margin-top:10px;font-size:13.5px;color:var(--muted)}
+aside{position:sticky;top:22px;align-self:start}
+.phone{aspect-ratio:9/16;border-radius:30px;border:1px solid var(--line);background:#000;overflow:hidden;display:grid;place-items:center;text-align:center;color:var(--muted);padding:20px}
+.phone video{width:100%;height:100%;object-fit:cover}
+.dl{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.dl a{color:var(--text);text-decoration:none;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:9px 14px;font-weight:600;font-size:14px}
+.note{font-size:12.5px;color:var(--muted);margin-top:12px}
+dialog{border:1px solid var(--line);border-radius:22px;background:var(--bg2);color:var(--text);max-width:440px;width:92%}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+@media(max-width:860px){.wrap{grid-template-columns:1fr}aside{position:static;order:-1}.phone{max-width:260px;margin:0 auto}}
+</style></head>
+<body><div class="wrap">
+<header><div class="brand"><svg width="30" height="30" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--a1)"/><stop offset="1" stop-color="var(--a2)"/></linearGradient></defs><rect x="4" y="4" width="92" height="92" rx="22" fill="url(#lg)"/><circle cx="48" cy="50" r="27" fill="none" stroke="var(--ink)" stroke-width="10" stroke-dasharray="141.4 29.7" stroke-dashoffset="14.85" stroke-linecap="round"/><polygon points="55,36 82,50 55,64" fill="var(--ink)"/></svg>CUTLOOM</div><div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chip" id="pill" style="align-self:center">Free</span><span class="chip" id="ver" style="align-self:center;opacity:.75"></span><button class="ghost" id="b3d">Photo to 3D</button><button class="ghost" id="keys">Settings and keys</button></div></header>
+<div class="hero"><h1>Idea in.<br><span>Short out.</span></h1></div>
+<section class="card" id="p3d" hidden style="grid-column:1/-1;margin:0"><h2>Photo to 3D blockout</h2><div class="msg" id="m3d"></div><iframe id="f3d" hidden title="Photo to 3D" style="width:100%;height:680px;border:0;border-radius:16px"></iframe></section>
+<main>
+ <section class="card"><h2><b>1</b>Niche and topic</h2>
+  <label for="niche">Your niche</label><input id="niche" placeholder="e.g. home coffee brewing, personal finance basics, retro game history">
+  <button class="ghost" id="sug" style="margin-top:10px">Suggest topics</button><div class="chips" id="chips"></div>
+  <label for="topic">Topic</label><input id="topic" placeholder="Pick a suggestion or type your own">
+  <div class="row"><div><label>Length</label><div class="seg"><button data-s="15">15s</button><button data-s="30" aria-pressed="true">30s</button><button data-s="60">60s</button></div></div>
+  <div><label for="tone">Tone</label><select id="tone"><option>engaging</option><option>funny</option><option>calm and informative</option><option>dramatic</option><option>motivational</option></select></div></div>
+  <div class="row"><div><label for="lang">Language</label><select id="lang">
+    <option>English</option><option>Spanish</option><option>Portuguese</option><option>French</option><option>German</option><option>Italian</option><option>Dutch</option>
+    <option>Arabic</option><option>Hindi</option><option>Urdu</option><option>Bengali</option><option>Indonesian</option><option>Turkish</option><option>Russian</option>
+    <option>Chinese (Simplified)</option><option>Japanese</option><option>Korean</option><option>Vietnamese</option><option>Thai</option><option>Swahili</option>
+    <option>Hausa</option><option>Yoruba</option><option>Igbo</option><option>Amharic</option><option>Polish</option><option>Ukrainian</option>
+  </select></div><div><label for="sq">Script quality <span class="chip" style="font-size:11px;padding:3px 8px">Pro for Better</span></label><select id="sq">
+    <option value="standard">Standard — fast, good for most topics</option>
+    <option value="better">Better — a stronger writer for sharper hooks and pacing</option>
+  </select></div></div>
+  <label for="notes">Your own facts, opinions or story (keeps videos original)</label><textarea id="notes" rows="3" placeholder="Add something only you would say"></textarea>
+  <button class="go" id="wr">Write script</button> <button class="ghost" id="ownb" style="margin-left:8px">Write my own script (no key needed)</button>
+  <div id="own" hidden><label for="ownt">Paste your script</label><textarea id="ownt" rows="6" placeholder="Paste or type your script. It is split into scenes for you."></textarea><button class="go" id="split">Build scenes from my script</button></div>
+ </section>
+ <section class="card" id="s2" hidden><h2><b>2</b>Script and footage</h2>
+  <label for="title">Title</label><input id="title">
+  <div id="scenes" style="margin-top:12px"></div><div class="msg" id="wc"></div>
+  <label for="desc">Description</label><textarea id="desc" rows="2"></textarea>
+  <label for="tags">Hashtags</label><input id="tags">
+ </section>
+ <section class="card" id="s3" hidden><h2><b>3</b>Voice and render</h2>
+  <div class="row"><div><label for="voice">Voice</label><select id="voice"><option>alloy</option><option>nova</option><option>onyx</option><option>echo</option><option>fable</option><option>shimmer</option></select></div>
+  <div><label for="speed">Speed</label><input id="speed" type="range" min="0.8" max="1.3" step="0.05" value="1"></div></div>
+  <div class="row"><div><label for="qual">Quality</label><select id="qual"><option value="fast">Fast 720p (older PCs)</option><option value="hd">HD 1080p</option></select></div>
+  <div><label for="fmt">Format</label><select id="fmt">
+    <option value="vertical">9:16 vertical (TikTok, Shorts, Reels)</option>
+    <option value="horizontal">16:9 horizontal (YouTube) — Pro</option>
+    <option value="square">1:1 square (Instagram feed) — Pro</option>
+    <option value="custom">Custom size — Pro</option>
+  </select></div></div>
+  <div class="row" id="customwh" hidden><div><label for="cw">Width (px)</label><input id="cw" type="number" min="240" max="2160" value="1080"></div>
+  <div><label for="ch">Height (px)</label><input id="ch" type="number" min="240" max="2160" value="1350"></div></div>
+  <div class="row"><div><label for="cap">Captions</label><select id="cap"><option value="white">White</option><option value="yellow">Yellow</option><option value="none">Off (no captions)</option></select></div><div></div></div>
+  <label for="bgm">Background music <span class="chip" style="font-size:11px;padding:3px 8px">Pro</span></label>
+  <select id="bgm"><option value="none">No music</option><optgroup label="Preset library" id="bgmpresets"></optgroup><option value="__upload">Upload your own MP3…</option></select>
+  <input type="file" id="bgmfile" accept="audio/*" hidden>
+  <div id="bgmvol" hidden><label for="vol">Music volume <span id="volv"></span></label><input id="vol" type="range" min="0" max="60" value="18"></div>
+  <div class="msg" id="bgmmsg"></div>
+  <p class="note">Free voices use your computer's built-in speech and sound basic. OpenAI voices sound more natural but need your key.</p>
+  <button class="go" id="mk">Make video</button>
+ </section>
+ <section class="card" id="s4" hidden><h2><b>4</b>Batch mode <span class="chip" style="font-size:11px;padding:4px 9px">Pro</span></h2>
+  <p class="note" style="margin:0 0 10px">Make a week of shorts in one go. Each topic gets its own script, voiceover, footage and captions, using the voice, format and quality set above.</p>
+  <label for="btopics">Topics, one per line (up to 20)</label><textarea id="btopics" rows="5" placeholder="Why your coffee tastes bitter&#10;The one tool every home barista needs&#10;Cold brew vs iced coffee, explained"></textarea>
+  <button class="go" id="bgo">Start batch</button>
+  <div id="bqueue" style="margin-top:14px"></div>
+  <div class="dl" id="bdl"></div>
+ </section>
+ <div class="msg" id="msg"></div>
+</main>
+<aside><div class="phone"><video id="vid" controls playsinline hidden></video><span id="ph">Your video appears here</span></div>
+ <div class="dl" id="dl"></div>
+ <p class="note">Label AI-made content when you post, and vary your topics and add your own notes. Platforms reduce reach and ad revenue for repetitive, template-style videos.</p></aside>
+</div>
+<dialog id="dlg"><form method="dialog"><h2 style="font:800 20px 'Bricolage Grotesque'">Your keys</h2>
+ <p class="note">Keys stay on this PC and are only sent to the service they belong to. You pay those services directly, usually a few cents per short.</p>
+ <label for="k1">OpenAI key (voiceover, and scripts if no Anthropic key)</label><input id="k1" type="password" autocomplete="off">
+ <label for="k2">Anthropic key (optional, for scripts with Claude)</label><input id="k2" type="password" autocomplete="off">
+ <label for="k3">Pexels key (free, for stock footage)</label><input id="k3" type="password" autocomplete="off">
+ <div class="msg" id="ks"></div>
+ <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+ <label for="lk">Cutloom Pro license key</label><input id="lk" autocomplete="off" placeholder="Paste the key from your purchase email">
+ <div class="row" style="margin-top:10px"><button class="ghost" id="act" type="button">Activate</button><button class="ghost" id="deact" type="button">Deactivate on this PC</button></div>
+ <a id="buy" href="#" target="_blank" rel="noopener" hidden style="display:inline-block;margin-top:10px;color:var(--a2)">Get Cutloom Pro</a>
+ <div class="msg" id="ls"></div>
+ <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+ <label for="ulk">Cutloom Ultimate license key <span class="chip" style="font-size:11px;padding:3px 8px">AI clips</span></label><input id="ulk" autocomplete="off" placeholder="Paste your Cutloom Ultimate key">
+ <div class="row" style="margin-top:10px"><button class="ghost" id="ulsave" type="button">Save key</button><span id="ulcred" class="msg" style="align-self:center"></span></div>
+ <a id="ulbuy" href="#" target="_blank" rel="noopener" hidden style="display:inline-block;margin-top:10px;color:var(--a2)">Get Cutloom Ultimate credits</a>
+ <div class="msg" id="ulmsg"></div>
+ <button class="go" id="savek">Save</button></form></dialog>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const api=async(p,b)=>{const r=await fetch('/api/'+p,b?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}:{});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||'Something went wrong. Check the Pinokio terminal for details.');return d};
+const say=(m,e)=>{$('#msg').textContent=m||'';$('#msg').style.color=e?'#fb7185':''};
+const FMT_LABEL={vertical:'9:16',horizontal:'16:9',square:'1:1',custom:'Custom'};
+$('#fmt').onchange=()=>{$('#customwh').hidden=$('#fmt').value!=='custom'};
+async function run(btn,label,fn){btn.disabled=true;const t=btn.textContent;btn.textContent=label;say('');try{await fn()}catch(e){say(e.message,1)}finally{btn.disabled=false;btn.textContent=t}}
+let secs=30;
+$$('.seg button').forEach(b=>b.onclick=()=>{secs=+b.dataset.s;$$('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+const mark=s=>$('#ks').textContent=['openai','anthropic','pexels'].map(k=>k+': '+(s[k]?'saved':'not set')).join('  ·  ');
+let PRO=true;
+async function lic(){const d=await api('license');PRO=d.pro;$('#pill').textContent=d.test?'Test mode':d.pro?'Pro':'Free';$('#ver').textContent=d.version?('v'+d.version):'';
+ const b=$('#buy');b.hidden=d.pro||!d.buy_url;b.href=d.buy_url||'#';
+ $$('.seg button').forEach(x=>{const lock=!PRO&&x.dataset.s!=='15';x.disabled=lock;x.textContent=x.dataset.s+'s'+(lock?' (Pro)':'')});
+ if(!PRO&&secs!==15){secs=15;$$('.seg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.s==='15'))}
+ $('#qual option[value=hd]').disabled=!PRO;if(!PRO)$('#qual').value='fast';
+ $('#sq').querySelector('option[value=better]').disabled=!PRO;if(!PRO)$('#sq').value='standard';
+ [...$('#fmt').options].forEach(o=>{if(o.value!=='vertical')o.disabled=!PRO});
+ if(!PRO&&$('#fmt').value!=='vertical'){$('#fmt').value='vertical';$('#customwh').hidden=true}
+ $('#s4').querySelector('h2').lastElementChild.textContent=PRO?'':'Pro';$('#bgo').disabled=!PRO;
+ $('#btopics').placeholder=PRO?$('#btopics').placeholder:'Batch mode needs Cutloom Pro. Add your key in Settings and keys.';
+ [...$('#bgm').options].forEach(o=>{if(o.value!=='none')o.disabled=!PRO});
+ if(!PRO&&$('#bgm').value!=='none'){$('#bgm').value='none';$('#bgmvol').hidden=true}}
+lic().catch(()=>{});
+let bgmId='';
+api('bgm').then(d=>{const g=$('#bgmpresets');(d.presets||[]).forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name+' — '+p.description;g.appendChild(o)});lic().catch(()=>{})}).catch(()=>{});
+$('#bgm').onchange=async()=>{
+ if($('#bgm').value==='__upload'){$('#bgmfile').click();$('#bgm').value=bgmId||'none';return}
+ $('#bgmvol').hidden=$('#bgm').value==='none'};
+$('#bgmfile').onchange=async()=>{
+ const f=$('#bgmfile').files[0];if(!f)return;$('#bgmmsg').textContent='Uploading '+f.name+'…';
+ try{const fd=new FormData();fd.append('file',f);
+  const r=await fetch('/api/bgm/upload',{method:'POST',body:fd});const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.detail||'Could not upload that file.');
+  bgmId=d.id;let o=$('#bgm').querySelector('option[data-custom]');if(!o){o=document.createElement('option');o.dataset.custom=1;$('#bgm').insertBefore(o,$('#bgm').querySelector('option[value=__upload]'))}
+  o.value=d.id;o.textContent='Your track: '+d.name;$('#bgm').value=d.id;$('#bgmvol').hidden=false;$('#bgmmsg').textContent=''}
+ catch(e){$('#bgmmsg').textContent=e.message;$('#bgm').value='none'}};
+$('#vol').oninput=()=>$('#volv').textContent=$('#vol').value+'%';$('#volv').textContent=$('#vol').value+'%';
+$('#act').onclick=async()=>{try{await api('license',{key:$('#lk').value});$('#ls').textContent='Pro unlocked. Thank you!';await lic()}catch(x){$('#ls').textContent=x.message}};
+$('#deact').onclick=async()=>{try{await api('license/deactivate',{});$('#ls').textContent='Removed from this PC.';await lic()}catch(x){$('#ls').textContent=x.message}};
+async function ultRefresh(){const u=await api('ultimate').catch(()=>({available:false}));
+ if(!u.available){$('#ulcred').textContent=u.coming_soon?'Coming soon':'Not set up yet';$('#ulbuy').hidden=true;return}
+ $('#ulcred').textContent=u.has_key?(u.credits+' credits'):'No key saved';
+ $('#ulbuy').hidden=!u.buy_url;$('#ulbuy').href=u.buy_url||'#'}
+$('#ulsave').onclick=async()=>{try{await api('ultimate/key',{key:$('#ulk').value});$('#ulmsg').textContent='Saved.';await ultRefresh()}catch(x){$('#ulmsg').textContent=x.message}};
+ultRefresh().catch(()=>{});
+$('#b3d').onclick=async()=>{const p=$('#p3d');p.hidden=!p.hidden;if(p.hidden)return;const d=await api('3d').catch(()=>({}));
+ if(!d.installed){$('#m3d').textContent='The 3D module is not installed. In Pinokio, open Cutloom and click "Add 3D module". It needs an NVIDIA graphics card to be fast.';return}
+ if(!d.running){$('#m3d').textContent='The 3D module is still starting. Wait a few seconds and click Photo to 3D again.';return}
+ $('#m3d').textContent='';$('#f3d').src=d.url;$('#f3d').hidden=false};
+$('#keys').onclick=()=>$('#dlg').showModal();
+$('#savek').onclick=async e=>{e.preventDefault();try{mark(await api('settings',{openai:$('#k1').value,anthropic:$('#k2').value,pexels:$('#k3').value}));['#k1','#k2','#k3'].forEach(i=>$(i).value='');setTimeout(()=>$('#dlg').close(),700)}catch(x){$('#ks').textContent=x.message}};
+api('settings').then(s=>{mark(s);if(!s.openai&&!s.anthropic)$('#dlg').showModal()}).catch(()=>{});
+$('#sug').onclick=()=>run($('#sug'),'Thinking…',async()=>{const t=await api('topics',{niche:$('#niche').value});$('#chips').innerHTML='';t.forEach(x=>{const b=document.createElement('button');b.className='chip';b.textContent=x;b.onclick=()=>$('#topic').value=x;$('#chips').appendChild(b)})});
+function count(){const w=$$('.sc textarea').reduce((n,t)=>n+t.value.trim().split(/\s+/).filter(Boolean).length,0);$('#wc').textContent=w+' words, about '+Math.round(w/2.5)+' seconds spoken. Edit anything you like.'}
+function add(s){const r=document.createElement('div');r.className='sc';r.dataset.clip=s.clip||'';
+ r.innerHTML='<textarea rows="2" aria-label="Spoken line"></textarea>'+
+  '<div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap"><input placeholder="Footage keywords" aria-label="Footage keywords" style="flex:1;min-width:140px"><button type="button" class="ghost clipbtn" style="flex:none;font-size:12.5px;padding:8px 12px">Use my own clip <span class="chip" style="font-size:10px;padding:2px 6px;margin-left:4px">Pro</span></button><button type="button" class="ghost aibtn" style="flex:none;font-size:12.5px;padding:8px 12px">Generate with AI <span class="chip" style="font-size:10px;padding:2px 6px;margin-left:4px">Soon</span></button><input type="file" accept="video/*" class="clipfile" hidden></div>'+
+  '<div class="msg clipmsg" style="margin-top:4px"></div>'+
+  '<div class="aibox" hidden style="margin-top:6px"><textarea class="aiprompt" rows="2" aria-label="Describe the AI clip" placeholder="Describe what we should SEE for 5 seconds. Avoid words or signs in the picture, AI video garbles text."></textarea><button type="button" class="go aigo" style="margin-top:6px;padding:9px 14px;font-size:13px">Generate clip (uses 1 credit)</button></div>';
+ r.children[0].value=s.text||'';r.children[1].querySelector('input[placeholder="Footage keywords"]').value=[].concat(s.keywords||'').join(' ');
+ r.children[0].oninput=count;
+ const kwInput=r.querySelector('input[placeholder="Footage keywords"]'),btn=r.querySelector('.clipbtn'),aibtn=r.querySelector('.aibtn'),file=r.querySelector('.clipfile'),msg=r.querySelector('.clipmsg');
+ function paint(){if(r.dataset.clip){kwInput.disabled=true;kwInput.placeholder='Using your own clip';btn.textContent='Change clip';msg.textContent=msg.textContent||'Your clip is set for this scene.'}else{kwInput.disabled=false;kwInput.placeholder='Footage keywords';btn.innerHTML='Use my own clip <span class="chip" style="font-size:10px;padding:2px 6px;margin-left:4px">Pro</span>'}}
+ btn.onclick=()=>{if(!PRO){msg.textContent='Using your own clip needs Cutloom Pro.';return}file.click()};
+ file.onchange=async()=>{const f=file.files[0];if(!f)return;msg.textContent='Uploading '+f.name+'…';
+  try{const fd=new FormData();fd.append('file',f);const resp=await fetch('/api/clip/upload',{method:'POST',body:fd});const d=await resp.json().catch(()=>({}));
+   if(!resp.ok)throw new Error(d.detail||'Could not upload that clip.');
+   r.dataset.clip=d.id;msg.textContent='Using '+d.name+' for this scene.';paint()}
+  catch(e){msg.textContent=e.message}};
+ const aibox=r.querySelector('.aibox'),aiprompt=r.querySelector('.aiprompt'),aigo=r.querySelector('.aigo');
+ function aspect(){const f=$('#fmt').value;if(f==='horizontal')return'16:9';if(f==='square')return'1:1';
+  if(f==='custom'){const w=+$('#cw').value||1080,h=+$('#ch').value||1920;return w>h*1.1?'16:9':(h>w*1.1?'9:16':'1:1')}return'9:16'}
+ aibtn.onclick=async()=>{
+  if(!PRO){msg.textContent='AI clips (Cutloom Ultimate) are coming soon. They will need Cutloom Pro.';return}
+  const u=await api('ultimate').catch(()=>({available:false}));
+  if(!u.available){msg.textContent=u.coming_soon?'AI clips (Cutloom Ultimate) are coming soon.':'Cutloom Ultimate is not set up yet.';return}
+  if(!u.has_key){msg.textContent='Add your Cutloom Ultimate license key in Settings and keys first.';return}
+  if(!u.credits){msg.innerHTML='You have 0 AI credits.'+(u.buy_url?' <a href="'+u.buy_url+'" target="_blank" rel="noopener">Buy credits</a>':'');return}
+  aiprompt.value=aiprompt.value||kwInput.value||r.children[0].value;aibox.hidden=!aibox.hidden;
+  msg.textContent=aibox.hidden?'':'You have '+u.credits+' credit(s). Each clip is 5 seconds, made in '+aspect()+'.'};
+ aigo.onclick=async()=>{
+  const prompt=aiprompt.value.trim();if(!prompt){msg.textContent='Describe the clip first.';return}
+  aigo.disabled=true;aibtn.disabled=true;msg.textContent='Sending to the AI model…';
+  try{
+   const g=await api('ultimate/generate',{prompt,aspect_ratio:aspect()});
+   for(;;){await new Promise(res=>setTimeout(res,2000));const j=await api('ultimate/generate/'+g.job_id);
+    if(j.step)msg.textContent=j.step;
+    if(j.done){if(j.error)throw new Error(j.error);r.dataset.clip=j.clip_id;aibox.hidden=true;paint();msg.textContent='AI clip ready for this scene. ('+g.credits_remaining+' credits left)';break}}}
+  catch(e){msg.textContent=e.message}
+  finally{aigo.disabled=false;aibtn.disabled=false}};
+ paint();$('#scenes').appendChild(r)}
+$('#wr').onclick=()=>run($('#wr'),'Writing…',async()=>{
+ if(!$('#topic').value.trim())throw new Error('Type or pick a topic first.');
+ const d=await api('script',{topic:$('#topic').value,niche:$('#niche').value,seconds:secs,tone:$('#tone').value,notes:$('#notes').value,language:$('#lang').value||'English',script_quality:$('#sq').value});
+ $('#title').value=d.title||'';$('#desc').value=d.description||'';$('#tags').value=[].concat(d.hashtags||[]).join(' ');
+ $('#scenes').innerHTML='';(d.scenes||[]).forEach(add);count();$('#s2').hidden=$('#s3').hidden=$('#s4').hidden=false;$('#s2').scrollIntoView({behavior:'smooth'})});
+function fill(d){$('#title').value=d.title||'';$('#desc').value=d.description||'';$('#tags').value=[].concat(d.hashtags||[]).join(' ');
+ $('#scenes').innerHTML='';(d.scenes||[]).forEach(add);count();$('#s2').hidden=$('#s3').hidden=$('#s4').hidden=false;$('#s2').scrollIntoView({behavior:'smooth'})}
+$('#ownb').onclick=()=>{$('#own').hidden=!$('#own').hidden};
+$('#split').onclick=()=>run($('#split'),'Building…',async()=>fill(await api('split',{text:$('#ownt').value,niche:$('#niche').value})));
+Promise.all([api('voices'),api('settings')]).then(([v,k])=>{const sel=$('#voice');let o='';
+ if(v.system.length)o+='<optgroup label="Free voices on this PC">'+v.system.map(x=>'<option value="sys:'+x.id.replace(/"/g,'&quot;')+'">'+x.name+'</option>').join('')+'</optgroup>';
+ o+='<optgroup label="OpenAI voices (your key, sounds more natural)">'+v.openai.map(x=>'<option value="'+x+'">'+x+'</option>').join('')+'</optgroup>';sel.innerHTML=o;
+ sel.selectedIndex=0}).catch(()=>{});
+$('#mk').onclick=()=>run($('#mk'),'Working…',async()=>{
+ const scenes=$$('.sc').map(r=>({text:r.children[0].value.trim(),keywords:r.querySelector('input[placeholder="Footage keywords"]').value.trim(),clip:r.dataset.clip||''})).filter(s=>s.text);
+ if(!scenes.length)throw new Error('The script is empty.');
+ const {id}=await api('render',{title:$('#title').value,scenes,voice:$('#voice').value,speed:+$('#speed').value,quality:$('#qual').value,format:$('#fmt').value,width:+$('#cw').value||0,height:+$('#ch').value||0,caption:$('#cap').value,bgm:$('#bgm').value==='__upload'?'none':$('#bgm').value,music_volume:+$('#vol').value/100,description:$('#desc').value,hashtags:$('#tags').value.split(/\s+/).filter(Boolean)});
+ for(;;){await new Promise(r=>setTimeout(r,1500));const j=await api('job/'+id);say(j.step||'');
+  if(j.done){if(j.error)throw new Error(j.error);$('#vid').src=j.video;$('#vid').hidden=false;$('#ph').hidden=true;
+   $('#dl').innerHTML='<a href="'+j.video+'" download="short.mp4">Download MP4</a><a href="'+j.zip+'" download>All files (zip)</a>';
+   say((j.warn||[]).join(' ')||'Done. Label AI-made content when you post it.');break}}});
+
+function rowsFor(items){return items.map((it,i)=>{
+ const s=it.step||(it.done?(it.error?'Failed':'Done'):'Waiting');
+ const c=it.error?'#fb7185':it.done?'#34d399':'var(--muted)';
+ return '<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13.5px">'+
+  '<span>'+(i+1)+'. '+(it.title||it.topic)+'</span><span style="color:'+c+'">'+(it.error?it.error.slice(0,60):s)+'</span></div>'}).join('')}
+$('#bgo').onclick=()=>run($('#bgo'),'Starting…',async()=>{
+ const topics=$('#btopics').value.split('\n').map(x=>x.trim()).filter(Boolean);
+ if(!topics.length)throw new Error('Add at least one topic, one per line.');
+ const {id}=await api('batch',{niche:$('#niche').value,tone:$('#tone').value,seconds:secs,language:$('#lang').value||'English',notes:$('#notes').value,script_quality:$('#sq').value,
+  topics,voice:$('#voice').value,speed:+$('#speed').value,quality:$('#qual').value,format:$('#fmt').value,width:+$('#cw').value||0,height:+$('#ch').value||0,caption:$('#cap').value,bgm:$('#bgm').value==='__upload'?'none':$('#bgm').value,music_volume:+$('#vol').value/100});
+ for(;;){await new Promise(r=>setTimeout(r,1500));const b=await api('batch/'+id);
+  $('#bqueue').innerHTML=rowsFor(b.items)+'<div class="msg" style="margin-top:8px">'+b.progress+' of '+b.total+' done</div>';
+  if(b.done){$('#bdl').innerHTML=b.zip?'<a href="'+b.zip+'" download>Download all ('+b.total+' videos, zip)</a>':'';
+   say(b.zip?'Batch finished.':'Batch finished, but no videos came out. Check the topics above.');break}}});
+</script></body></html>
