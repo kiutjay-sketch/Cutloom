@@ -1,65 +1,66 @@
-# CUTLOOM
+# Cutloom Ultimate: backend server (v2, points)
 
-**Idea in. Short out.**
+A SEPARATE service from the Cutloom app. It must stay online on a host you
+control because it holds your fal.ai key. Never put that key inside the Cutloom
+app: anything in a downloaded app can be extracted.
 
-Cutloom turns a topic into a finished vertical video for TikTok, YouTube Shorts and Instagram Reels. It writes the script, records the voiceover, finds stock footage and adds captions, all on your own PC. You can edit every line before you export.
+## How it works
+- A customer buys a points pack on Lemon Squeezy. Lemon Squeezy sends a signed
+  webhook and the points go to that customer's **email** balance. Duplicate
+  deliveries are ignored, and a refunded order takes its points back.
+- In Cutloom, the customer pastes their Ultimate license key. The server asks
+  Lemon Squeezy who owns the key and uses that email's balance, so two keys
+  from the same email share one balance.
+- Four actions, each with a point cost you can change:
 
-Website: https://cutloom.netlify.app
+| Action | What it does | Default points | fal.ai model (change with an env var) |
+|---|---|---|---|
+| `image` | text to still image | 1 | `fal-ai/wan/v2.2-a14b/text-to-image` |
+| `animate_fast` | image to 5s clip (turbo) | 4 | `fal-ai/wan/v2.2-a14b/image-to-video/turbo` |
+| `animate` | image to 5s clip (standard) | 16 | `fal-ai/wan/v2.2-a14b/image-to-video` |
+| `video` | text to 5s clip | 20 | `fal-ai/wan/v2.2-a14b/text-to-video` |
 
-## What it does
+- A failed generation refunds exactly what it cost. So does a job cut off by a
+  server restart. A finished job is never refunded twice.
+- For the two animate actions, the customer's image is saved briefly on this
+  server under a random unguessable name so fal.ai can fetch it, and deleted
+  as soon as the job ends. Leftovers older than an hour are swept.
 
-1. **Pick a topic.** Enter your niche and get topic ideas, or type your own.
-2. **Write the script.** Choose 15, 30 or 60 seconds. Add your own facts so every video is yours. Edit any line.
-3. **Match footage.** Each scene gets matching stock footage from Pexels. Change the keywords, or use your own clip for a scene.
-4. **Add voice and captions.** Use a free built-in voice, or natural AI voices with your own OpenAI key. Choose caption style, background music, and the video shape (9:16, 16:9, 1:1 or custom).
-5. **Export.** Download a finished MP4.
+## Environment variables (Render: your service > Environment)
+| Name | Value |
+|---|---|
+| `FAL_KEY` | your fal.ai API key |
+| `LEMONSQUEEZY_ULTIMATE_PRODUCT_ID` | `1399775` (live). Use the test-mode ID only while testing |
+| `LEMONSQUEEZY_WEBHOOK_SECRET` | the same long random string as in Lemon Squeezy's webhook |
+| `ADMIN_TOKEN` | another long random string (manual points, testing) |
+| `DATA_DIR` | folder for the database. On Render, a persistent disk path, e.g. `/var/data` |
+| `PUBLIC_BASE_URL` | optional. Default `https://cutloom-ultimate.onrender.com` (used to give fal.ai a link to the temporary image) |
+| `POINT_COSTS` | optional JSON, e.g. `{"image":1,"animate_fast":4,"animate":16,"video":20}` |
+| `VARIANT_CREDITS` | optional JSON mapping variant names to points. Defaults: `200 points`, `600 points`, `2000 points` (the old `10/30/100 clips` names also work) |
+| `FAL_MODEL_ENDPOINT`, `FAL_MODEL_IMAGE`, `FAL_MODEL_ANIMATE`, `FAL_MODEL_ANIMATE_FAST` | optional model overrides |
+| `MAX_PENDING_JOBS`, `MAX_JOBS_PER_HOUR` | optional. Defaults 3 and 60 per customer |
 
-Videos are rendered on your computer. Your scripts, keys and footage do not pass through any server of ours.
+`/api/health` shows which of these are set (yes/no, never the values) plus the current costs and models.
 
-## Free, Pro and Ultimate
+## Before selling to real customers
+1. **Durable storage.** Render's free plan erases files on every restart, which would erase paid points. Use a paid always-on instance with a persistent disk and set `DATA_DIR` to it.
+2. **Run one worker.** The restart-recovery step assumes one server process.
+3. **Run one real generation of each action** (see below) and compare the amounts billed in fal.ai's dashboard with the point costs.
+4. **Test a live purchase** (a 100%-off discount code works) and confirm points appear by themselves.
+5. **Update the Privacy page, Terms and README.** Prompts, and customers' uploaded photos, pass through this server and fal.ai.
+6. Set a **spend alert** in your fal.ai account.
 
-| | Free | Pro ($29 one-time) |
-|---|---|---|
-| Video length | 15 seconds | 15, 30 and 60 seconds |
-| Quality | Fast 720p | 720p and HD 1080p |
-| Shapes | 9:16 vertical | 9:16, 16:9, 1:1, custom |
-| Watermark | Small "Made with Cutloom" | None |
-| Background music, batch mode, your own clips | No | Yes |
-| Export | MP4 | MP4 plus zip with voiceover, script and subtitles |
+## Testing with real fal.ai credit
+These are the parts nobody has been able to test yet. The request fields below follow fal's documentation and third-party examples, not a live run:
+- text-to-image: `prompt`, `image_size` (`portrait_16_9` / `landscape_16_9` / `square_hd`)
+- image-to-video: `image_url`, `prompt`, `resolution`, `num_frames`, `frames_per_second` (the turbo variant is sent without frame fields)
+- the image reaches fal as a link to `PUBLIC_BASE_URL/api/tmp/<random name>`
 
-**Cutloom Ultimate** (AI-generated clips for a scene, sold as credit packs) is **coming soon** and is not for sale yet. It will need Pro.
+If fal rejects a request, the customer sees a friendly message and is refunded, and the server log shows the details. Fix the field in `build_input` in `main.py`.
 
-Pricing and purchase links: https://cutloom.netlify.app/#pricing
+Steps: set `LEMONSQUEEZY_ULTIMATE_PRODUCT_ID` to the TEST product ID (`1393591`) for the test session, use the Ultimate test-mode license key, give yourself points at `/docs` > `POST /api/admin/grant`, switch `"enabled"` to `true` in your own copy of `ultimate_config.json` (with the test product ID), then run each action once. Put the live ID back afterwards.
 
-## What you need
-
-- A Windows PC with the free [Pinokio](https://pinokio.computer) app installed. Cutloom was made and tested on Windows. Mac and Linux are untested.
-- No graphics card is needed for the Studio.
-- **Optional:** an OpenAI key, for natural AI voices and AI-written scripts. This usually costs a few cents per short and is billed to you by OpenAI. Without it you can paste your own script and use a free built-in voice.
-- **Recommended:** a free Pexels key, for real stock footage. Without it you get plain colored backgrounds.
-- **Optional photo-to-3D module:** runs best with an NVIDIA graphics card, and may be very slow on other PCs.
-
-## Install
-
-1. Open Pinokio and choose **Download**.
-2. Paste this repository's address: `https://github.com/kiutjay-sketch/Cutloom`
-3. When it finishes, click **Install**, then **Start**, then **Open Cutloom**.
-4. In Cutloom, click **Settings and keys** and paste your keys.
-
-## Honest notes
-
-- Platforms such as YouTube and TikTok reduce reach and ad revenue for repetitive, template-style videos. Use your own topics and facts, and label AI-made content when you post. Cutloom cannot promise views or earnings.
-- AI-written scripts and voices are sent to the AI service you choose, using your own key. See your provider's privacy policy.
-- Stock footage comes from Pexels and is subject to the Pexels license.
-
-## Support
-
-Email cutloom@hotmail.com
-
-## License
-
-Copyright (c) 2026 James Igbokwe. All rights reserved.
-
-The free version may be used for personal and commercial video making. Pro features require a license key bought from the Cutloom store. You may not copy, resell, redistribute or modify this software, or share a license key. See the [Terms](https://cutloom.netlify.app/terms.html).
-
-Cutloom is not affiliated with TikTok, YouTube, Instagram, OpenAI, Anthropic, Pexels or Pinokio. All names belong to their owners.
+## Known limits
+- Customer data is one JSON file. Fine to start; move to a real database if this grows.
+- If a clip is generated but cannot be downloaded to the customer's PC after 3 tries, points are not restored automatically. Use the admin endpoint.
+- Test mode and live mode are separate in Lemon Squeezy: separate products, keys and webhooks.

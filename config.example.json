@@ -1,0 +1,8 @@
+{
+  "fal_key": "YOUR_FAL_AI_KEY",
+  "lemonsqueezy_ultimate_product_id": "1399775",
+  "lemonsqueezy_webhook_secret": "A_LONG_RANDOM_STRING_YOU_ALSO_PASTE_INTO_LEMON_SQUEEZY",
+  "admin_token": "ANOTHER_LONG_RANDOM_STRING",
+  "data_dir": ".",
+  "public_base_url": "https://cutloom-ultimate.onrender.com"
+}
